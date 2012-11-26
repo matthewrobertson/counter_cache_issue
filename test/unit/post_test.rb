@@ -7,7 +7,7 @@ class PostTest < ActiveSupport::TestCase
     @post.tag_names = 'cats'
   end
 
-  test 'counter cache is incremented properly' do
+  test 'counter cache is increment when a post is tagged' do
     assert Tag.find_by_name('cats').taggings_count == 1
   end
 
@@ -22,9 +22,17 @@ class PostTest < ActiveSupport::TestCase
     assert tag.reload.taggings_count == 0
   end
 
-  test 'counter cache is decremented when the post is deleted' do
+  test 'counter cache is not decremented when the post is deleted' do
     @post.delete
-    assert Tag.find_by_name('cats').taggings_count == 0
+    assert Tag.find_by_name('cats').taggings_count == 1 # seems to be expected behaviour
+  end
+
+  test 'counter cache is decremented when multi-assignment' do
+    tag = Tag.create(:name => "dog")
+    @post.tags = [tag]
+
+    cat_tag = Tag.find_by_name('cats')
+    assert cat_tag.taggings_count == cat_tag.posts.count
   end
 
 end
